@@ -146,120 +146,64 @@
 			</div>
 		</footer>
 
+<!-- Modal Dialog Displaying Closest Friend Match -->
+<div id="modal1" class="modal">
+	<div class="modal-content">
+		<h4>Closest Friend Match</h4>
+		<div class="divider"></div>
+		<h5 id="userMatch"></h5>
+		<img id="userMatchImage" class="materialboxed" width="650" src="">
 	</div>
-	<div id="show-modal" class="modal fade">
-	  <div class="modal-dialog" role="document">
-	    <div class="modal-content">
-	      <div class="modal-header">
-	        <h5 class="modal-title">Friend | Finder</h5>
-	        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-	          <span aria-hidden="true">&times;</span>
-	        </button>
-	      </div>
-	      <div class="modal-body">
-	        <p></p>
-	      </div>
-	      <div class="modal-footer">
-	        <button type="button" class="btn btn-primary">Save changes</button>
-	        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-	      </div>
-	    </div>
-	  </div>
+	<div class="modal-footer">
+		<a href="/survey" class="modal-action modal-close waves-effect waves-green btn-flat">Fill Again!</a>
+	</div>
 </div>
 
-	<script type="text/javascript">
-		
-		// Chosen CSS
-		//Setting the width of answer dropdowns
-	    $(".chosen-select").chosen({width: "13%"});
-	    //Once the user clicks "Submit" the selected data is registered and displayed in the modal
-	    $(".submit").on("click", function(event) {
-	    	event.preventDefault();
-	    	function validateIt() {
-	    		var valid = true;
-	    		$(".form-control").each(function() {
-	    			if ($(this).val() === "") {
-	    				valid = false;
-	    				alert("Please fill out all fields before submitting!");
-	    				return false;
-	    			}
-	    		});	
-		    	$('.chosen-select').each(function() {
-				  	if( $(this).val() === ""){
-				  		valid = false
-				  	}
-				});
-				  	return valid;
-	    	}
-	    	validateIt();
-	    	
-	    	if (validateIt() === true ) {
-	    	//Assigning the selectiions to a new object "newFriend"
-	    	var newFriend = {
-	    		name: $("#name").val(),
-	    		photo: $("#photo").val(),
-	    		scores: [$("select[id=num1] option:selected").val(),
-	    			$("select[id=num2] option:selected").val(),
-	    			$("select[id=num3] option:selected").val(),
-	    			$("select[id=num4] option:selected").val(),
-	    			$("select[id=num5] option:selected").val(),
-	    			$("select[id=num6] option:selected").val(),
-	    			$("select[id=num7] option:selected").val(),
-	    			$("select[id=num8] option:selected").val(),
-	    			$("select[id=num9] option:selected").val(),
-	    			$("select[id=num10] option:selected").val(),
-	    			]
-	    	};
-	    	//Logging the response for functionality check
-	    	console.log(newFriend);
-	    	//Add user entry to JSON object "friends"
-	    	$.post("/api/friends", newFriend , function(data) {
-		   		if (data) {
-		   			console.log("New friend added!");
-		   		}
-	   		});
-	   		var newScores = newFriend.scores.map(Number);
-	   		console.log(newScores);
-	   	}	
-	   		var totalDiff = 0,
-	   			match;
-	   		function calcDiff(newFriend) {
-	   			var currentURL = window.location.origin;
-	   			$.ajax({
-	   				url: currentURL + "/api/friends",
-	   				method: "GET"
-	   			})
-	   			.done(function(friendArray) {
-	   				console.log("URL:" + currentURL + "/api/friends");
-	   				console.log(friendArray);
-	   				match = friendArray[0];
-	   				var currentMatch = 99;
-	   				for (var i = 0; i < friendArray.length; i++) {
-	   					totalDiff = 0;
-	   					console.log(friendArray[i].scores);
-	   					for (var x = 0; x < newFriend.scores.length; x++) {
-	   						var theDiff = Math.abs(friendArray[i].scores[x] - newFriend.scores[x]);
-	   						totalDiff += theDiff;
-	   					}
-		   				if (totalDiff === currentMatch) {
-		   					currentMatch = totalDiff;
-		   					console.log(totalDiff);
-		   					match = friendArray[i];
-		   					console.log(match);
-	   					}
-	   				}
-	   				calcDiff(newFriend);
-	   				modalDisplay(match);
-	   			});
-	   		}
-	   		//calcDiff(newFriend);
-	   		function modalDisplay(match) {
-	   			$(".modal-body").append("<p>Your most compatible match is: " + match.name + "</p>");
-	   			$(".modal-body").append('<img src="' + match.photo + '"/>');
-	   			$("#show-modal").modal("show");
-	   		}
-	    });
-	    //Add user entry to JSON object "friends"
+<script type="text/javascript">
+	$(document).ready(function() {
+		$('select').material_select();
+		$('.modal').modal({
+			dismissible: false, // Modal can be dismissed by clicking outside of the modal
+			opacity: .5, // Opacity of modal background
+			inDuration: 300, // Transition in duration
+			outDuration: 200, // Transition out duration
+			startingTop: '4%', // Starting top style attribute
+			endingTop: '10%' // Ending top style attribute
+		});
+	});
+	// Activate submit button
+	$('#submitButton').on('click', function(event) {
+		event.preventDefault();
+		// Gather user inputs
+		var userInput = {
+			name: $('#userName').val().trim(),
+			photo: $('#userPhoto').val().trim(),
+			scores:[
+				$('#num1').val().trim(),
+				$('#num2').val().trim(),
+				$('#num3').val().trim(),
+				$('#num4').val().trim(),
+				$('#num5').val().trim(),
+				$('#num6').val().trim(),
+				$('#num7').val().trim(),
+				$('#num8').val().trim(),
+				$('#num9').val().trim(),
+				$('#num10').val().trim()
+			]
+		};
+		// console.log('userInput = ' + JSON.stringify(userInput));
+		// Add user inputs to friends list
+		$.post('/api/friends', userInput)
+		  .done(function(data) {
+			  // console.log('response = ' + JSON.stringify(data));
+			  // Set the name and image values of friend match
+			  $('#userMatch').html(data.matchName);
+			$("#userMatchImage").attr("src", data.matchImage);
+			// Pop open the modal dialog
+			  $('#modal1').modal('open');
+		  });
+	});
+</script>
 	</script>
 
 </body>
